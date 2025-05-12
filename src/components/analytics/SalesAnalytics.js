@@ -119,6 +119,10 @@ const SalesAnalytics = () => {
     dispatch(selectVariant(selectedVariant));
   };
 
+  const maxRevenue = sortedSalesByMonth.length > 0 
+    ? Math.max(...sortedSalesByMonth.map(d => d.revenue))
+    : 0;
+
   return (
     <div className="space-y-6">
       <div className="bg-white shadow rounded-lg p-6">
@@ -215,25 +219,30 @@ const SalesAnalytics = () => {
           <h3 className="text-lg font-medium text-gray-900 mb-4">Sales Trends</h3>
           
           {sortedSalesByMonth.length > 0 ? (
-            <div className="relative h-80">
+            <div className="relative h-80 mt-10">
               {/* Y-axis label */}
               <div className="absolute -left-10 h-full flex items-center">
                 <div className="transform -rotate-90 text-xs text-gray-500">Revenue ($)</div>
               </div>
               
-              <div className="flex h-full items-end space-x-1 pl-2">
+              {/* Chart container */}
+              <div className="flex h-full items-end mb-8 pl-2">
                 {sortedSalesByMonth.map((data, index) => {
-                  const maxRevenue = Math.max(...sortedSalesByMonth.map(d => d.revenue));
-                  const heightPercentage = Math.max(5, (data.revenue / maxRevenue) * 100);
+                  // Force minimum height to be 4px so all bars are visible
+                  const heightPx = Math.max(4, (data.revenue / maxRevenue) * 300); 
                   
                   return (
-                    <div key={index} className="flex-1 flex flex-col items-center">
+                    <div key={index} className="flex-1 flex flex-col items-center px-0.5">
                       <div className="relative w-full group">
                         <div 
                           className="w-full bg-blue-500 hover:bg-blue-600 transition-colors rounded-t"
-                          style={{ height: `${heightPercentage}%` }}
-                        />
-                        <div className="opacity-0 group-hover:opacity-100 absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
+                          style={{ 
+                            height: `${heightPx}px`, // Use explicit pixels for height
+                            minHeight: '4px' // Ensure minimum height
+                          }}
+                        ></div>
+                        {/* Tooltip */}
+                        <div className="hidden group-hover:block absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
                           <div className="font-semibold">{data.month}</div>
                           <div>Revenue: ${data.revenue.toFixed(2)}</div>
                           <div>Units: {data.units}</div>
@@ -241,7 +250,8 @@ const SalesAnalytics = () => {
                           <div>Avg Price: ${data.avgPrice.toFixed(2)}</div>
                         </div>
                       </div>
-                      <div className={`text-xs text-gray-500 mt-1 w-full text-center overflow-hidden text-ellipsis whitespace-nowrap ${index % 2 !== 0 ? 'opacity-0 sm:opacity-100' : ''}`}>
+                      {/* Month label */}
+                      <div className={`text-xs text-gray-500 mt-2 w-full text-center overflow-hidden text-ellipsis whitespace-nowrap ${index % 2 !== 0 ? 'hidden sm:block' : ''}`}>
                         {data.month}
                       </div>
                     </div>
@@ -251,6 +261,14 @@ const SalesAnalytics = () => {
               
               {/* X-axis label */}
               <div className="text-xs text-gray-500 text-center mt-4">Month/Year</div>
+              
+              {/* Legend */}
+              <div className="flex justify-end mt-2">
+                <div className="flex items-center text-xs text-gray-500">
+                  <div className="w-3 h-3 bg-blue-500 rounded mr-1"></div>
+                  <span>Revenue</span>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="flex justify-center items-center p-12 bg-gray-50 rounded-lg">

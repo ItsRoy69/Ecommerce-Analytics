@@ -1,40 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# E-commerce Analytics Dashboard
+
+A comprehensive analytics dashboard for e-commerce stores, built with Next.js and Redux.
+
+## Features
+
+- **Authentication**: Simple shop name-based authentication
+- **Sales Analytics**: Track sales trends, revenue, and growth over time
+- **Price Analytics**: Analyze price points and their impact on sales
+- **Data Filtering**: Filter analytics by product and variant
+- **Responsive Design**: Fully responsive UI that works on mobile, tablet, and desktop
+
+## Tech Stack
+
+- **Frontend**: Next.js, React 19
+- **State Management**: Redux Toolkit
+- **Data Visualization**: Recharts
+- **Styling**: Tailwind CSS
+- **Database**: SQLite
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18.x or higher
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+```
+git clone https://github.com/ItsRoy69/Ecommerce-Analytics
+cd ecommerce-analytics
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies
+```
+npm install
+```
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+3. Run the development server
+```
+npm run dev
+```
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+## API Endpoints
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Authentication
 
-## Learn More
+```
+POST /api/auth
+```
+- Request Body: `{ shopName: string }`
+- Response: `{ success: boolean, shop: { id: number, name: string } }`
 
-To learn more about Next.js, take a look at the following resources:
+### Shop Data
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+```
+GET /api/shop/[shopId]/data
+```
+- Response: `{ shop: object, products: array, variants: array, orders: array }`

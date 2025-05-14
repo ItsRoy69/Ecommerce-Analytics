@@ -4,9 +4,10 @@ import { logout } from '@/store/slices/authSlice';
 import { fetchShopData } from '@/store/slices/salesSlice';
 import SalesAnalytics from './analytics/SalesAnalytics';
 import PriceAnalytics from './analytics/PriceAnalytics';
+import { REDUX_STATUS, ANALYTICS_TABS, ERROR_MESSAGES } from '@/constants';
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('sales');
+  const [activeTab, setActiveTab] = useState(ANALYTICS_TABS.SALES);
   const { shop } = useSelector((state) => state.auth);
   const { status: salesDataStatus, error: salesDataError } = useSelector((state) => state.sales);
   const dispatch = useDispatch();
@@ -15,7 +16,7 @@ const Dashboard = () => {
     if (shop && shop.id) {
       dispatch(fetchShopData(shop.id));
     } else {
-      console.error('No shop ID available for fetching data');
+      console.error(ERROR_MESSAGES.NO_SHOP_ID);
     }
   }, [dispatch, shop]);
 
@@ -24,7 +25,7 @@ const Dashboard = () => {
   };
 
   const renderContent = () => {
-    if (salesDataStatus === 'loading') {
+    if (salesDataStatus === REDUX_STATUS.LOADING) {
       return (
         <div className="flex justify-center items-center p-4 sm:p-20">
           <div className="text-center">
@@ -35,7 +36,7 @@ const Dashboard = () => {
       );
     }
 
-    if (salesDataStatus === 'failed') {
+    if (salesDataStatus === REDUX_STATUS.FAILED) {
       return (
         <div className="p-4 sm:p-8 bg-white rounded-lg shadow">
           <p className="text-red-600">Failed to load analytics data: {salesDataError || 'Unknown error'}</p>
@@ -49,8 +50,8 @@ const Dashboard = () => {
       );
     }
 
-    if (salesDataStatus === 'succeeded') {
-      return activeTab === 'sales' ? <SalesAnalytics /> : <PriceAnalytics />;
+    if (salesDataStatus === REDUX_STATUS.SUCCEEDED) {
+      return activeTab === ANALYTICS_TABS.SALES ? <SalesAnalytics /> : <PriceAnalytics />;
     }
 
     return (
@@ -82,9 +83,9 @@ const Dashboard = () => {
       <div className="mx-auto max-w-7xl mt-4 sm:mt-6 px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex overflow-x-auto border-b border-gray-200">
           <button
-            onClick={() => setActiveTab('sales')}
+            onClick={() => setActiveTab(ANALYTICS_TABS.SALES)}
             className={`py-2 sm:py-4 px-4 sm:px-6 font-medium text-xs sm:text-sm whitespace-nowrap ${
-              activeTab === 'sales'
+              activeTab === ANALYTICS_TABS.SALES
                 ? 'border-b-2 border-blue-500 text-blue-600'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -92,9 +93,9 @@ const Dashboard = () => {
             Sales Analytics
           </button>
           <button
-            onClick={() => setActiveTab('price')}
+            onClick={() => setActiveTab(ANALYTICS_TABS.PRICE)}
             className={`py-2 sm:py-4 px-4 sm:px-6 font-medium text-xs sm:text-sm whitespace-nowrap ${
-              activeTab === 'price'
+              activeTab === ANALYTICS_TABS.PRICE
                 ? 'border-b-2 border-blue-500 text-blue-600'
                 : 'text-gray-500 hover:text-gray-700'
             }`}

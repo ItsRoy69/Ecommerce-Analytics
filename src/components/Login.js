@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { authenticateShop, clearError } from '@/store/slices/authSlice';
+import { REDUX_STATUS, SAMPLE_SHOPS } from '@/constants';
 
 const Login = () => {
   const [shopName, setShopName] = useState('');
@@ -41,7 +42,7 @@ const Login = () => {
                 onChange={(e) => setShopName(e.target.value)}
                 className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                 placeholder="Enter your shop name"
-                disabled={status === 'loading'}
+                disabled={status === REDUX_STATUS.LOADING}
               />
             </div>
           </div>
@@ -55,21 +56,21 @@ const Login = () => {
           <div>
             <button
               type="submit"
-              disabled={status === 'loading' || !shopName.trim()}
+              disabled={status === REDUX_STATUS.LOADING || !shopName.trim()}
               className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-blue-600 ${
-                status === 'loading' || !shopName.trim() 
+                status === REDUX_STATUS.LOADING || !shopName.trim() 
                   ? 'opacity-50 cursor-not-allowed' 
                   : 'hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
               }`}
             >
-              {status === 'loading' ? 'Signing in...' : 'Sign In'}
+              {status === REDUX_STATUS.LOADING ? 'Signing in...' : 'Sign In'}
             </button>
           </div>
         </form>
 
         <div className="mt-4 text-center text-xs sm:text-sm">
           <p className="text-gray-600">
-            Try one of these shops: Fashion Store, Electronics Hub, Home Goods
+            Try one of these shops: {SAMPLE_SHOPS.join(', ')}
           </p>
         </div>
       </div>

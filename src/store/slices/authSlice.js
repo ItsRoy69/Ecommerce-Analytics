@@ -1,11 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { saveShopToStorage, removeShopFromStorage } from '@/utils/auth';
+import { API_ENDPOINTS, REDUX_STATUS, ERROR_MESSAGES } from '@/constants';
 
 export const authenticateShop = createAsyncThunk(
   'auth/authenticateShop',
   async (shopName, { rejectWithValue }) => {
     try {
-      const response = await fetch('/api/auth', {
+      const response = await fetch(API_ENDPOINTS.AUTH, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -16,21 +17,21 @@ export const authenticateShop = createAsyncThunk(
       const data = await response.json();
       
       if (!response.ok) {
-        return rejectWithValue(data.error || 'Authentication failed');
+        return rejectWithValue(data.error || ERROR_MESSAGES.AUTHENTICATION_FAILED);
       }
       
       saveShopToStorage(data.shop);
       
       return data.shop;
     } catch (error) {
-      return rejectWithValue(error.message || 'Authentication failed');
+      return rejectWithValue(error.message || ERROR_MESSAGES.AUTHENTICATION_FAILED);
     }
   }
 );
 
 const initialState = {
   shop: null,
-  status: 'idle',
+  status: REDUX_STATUS.IDLE,
   error: null,
   isAuthenticated: false,
 };
@@ -42,7 +43,7 @@ const authSlice = createSlice({
     logout: (state) => {
       state.shop = null;
       state.isAuthenticated = false;
-      state.status = 'idle';
+      state.status = REDUX_STATUS.IDLE;
       state.error = null;
       removeShopFromStorage();
     },
@@ -57,17 +58,17 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(authenticateShop.pending, (state) => {
-        state.status = 'loading';
+        state.status = REDUX_STATUS.LOADING;
         state.error = null;
       })
       .addCase(authenticateShop.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = REDUX_STATUS.SUCCEEDED;
         state.shop = action.payload;
         state.isAuthenticated = true;
         state.error = null;
       })
       .addCase(authenticateShop.rejected, (state, action) => {
-        state.status = 'failed';
+        state.status = REDUX_STATUS.FAILED;
         state.error = action.payload;
         state.isAuthenticated = false;
       });

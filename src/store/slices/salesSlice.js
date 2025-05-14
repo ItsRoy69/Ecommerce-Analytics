@@ -1,16 +1,21 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { 
+  API_ENDPOINTS, 
+  REDUX_STATUS, 
+  ERROR_MESSAGES 
+} from '@/constants';
 
 export const fetchShopData = createAsyncThunk(
   'sales/fetchShopData',
   async (shopId, { rejectWithValue }) => {
     try {
       console.log('Fetching shop data for ID:', shopId);
-      const response = await fetch(`/api/shop/${shopId}/data`);
+      const response = await fetch(API_ENDPOINTS.SHOP_DATA(shopId));
       const data = await response.json();
       
       if (!response.ok) {
         console.error('API Error:', data.error);
-        return rejectWithValue(data.error || 'Failed to fetch shop data');
+        return rejectWithValue(data.error || ERROR_MESSAGES.FETCH_DATA_FAILED);
       }
       
       console.log('Successfully fetched data:', {
@@ -22,7 +27,7 @@ export const fetchShopData = createAsyncThunk(
       return data;
     } catch (error) {
       console.error('Error fetching shop data:', error);
-      return rejectWithValue(error.message || 'Failed to fetch shop data');
+      return rejectWithValue(error.message || ERROR_MESSAGES.FETCH_DATA_FAILED);
     }
   }
 );
@@ -33,7 +38,7 @@ const initialState = {
   orders: [],
   selectedProduct: null,
   selectedVariant: null,
-  status: 'idle',
+  status: REDUX_STATUS.IDLE,
   error: null,
 };
 
@@ -56,11 +61,11 @@ const salesSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchShopData.pending, (state) => {
-        state.status = 'loading';
+        state.status = REDUX_STATUS.LOADING;
         state.error = null;
       })
       .addCase(fetchShopData.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = REDUX_STATUS.SUCCEEDED;
         state.products = action.payload.products || [];
         state.variants = action.payload.variants || [];
         
@@ -82,7 +87,7 @@ const salesSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchShopData.rejected, (state, action) => {
-        state.status = 'failed';
+        state.status = REDUX_STATUS.FAILED;
         state.error = action.payload;
       });
   },

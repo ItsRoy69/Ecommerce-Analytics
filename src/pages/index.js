@@ -8,6 +8,7 @@ import Dashboard from '@/components/Dashboard';
 export default function Home() {
   const { isAuthenticated } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  
   useEffect(() => {
     const storedShop = getShopFromStorage();
     if (storedShop) {

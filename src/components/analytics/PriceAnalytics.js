@@ -7,6 +7,17 @@ import {
   selectProductVariants 
 } from '@/store/slices/salesSlice';
 import { setTimeFrame, selectPriceData } from '@/store/slices/priceSlice';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
 
 const PriceAnalytics = () => {
   const dispatch = useDispatch();
@@ -106,21 +117,28 @@ const PriceAnalytics = () => {
     setShowUnit(showUnitView);
   };
 
-  // Get maximum values for scaling
-  const maxTotalRevenue = pricePoints.length > 0 
-    ? Math.max(...pricePoints.map(p => p.totalRevenue))
-    : 0;
-    
-  const maxRevenuePerUnit = pricePoints.length > 0 
-    ? Math.max(...pricePoints.map(p => p.revenuePerUnit))
-    : 0;
-    
-  const maxUnits = pricePoints.length > 0 
-    ? Math.max(...pricePoints.map(p => p.totalUnits))
-    : 0;
+  // Custom tooltip for both charts
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      const isOptimal = optimalPricePoint && data.price === optimalPricePoint.price;
+      
+      return (
+        <div className="bg-gray-800 text-white text-xs rounded py-2 px-3">
+          <p className="font-semibold">Price: ${data.price.toFixed(2)}</p>
+          <p>Total Revenue: ${data.totalRevenue.toFixed(2)}</p>
+          <p>Units Sold: {data.totalUnits}</p>
+          <p>Orders: {data.occurrences}</p>
+          <p>Revenue Per Unit: ${data.revenuePerUnit.toFixed(2)}</p>
+          {isOptimal && <p className="text-green-400 font-semibold">Optimal Price Point</p>}
+        </div>
+      );
+    }
+    return null;
+  };
 
-  // Calculate the appropriate max value based on current view
-  const maxValue = showUnit ? maxRevenuePerUnit : maxTotalRevenue;
+  // Format X axis ticks to show dollar amounts
+  const formatPrice = (price) => `$${price.toFixed(2)}`;
 
   return (
     <div className="space-y-6">
@@ -203,178 +221,134 @@ const PriceAnalytics = () => {
           </div>
           
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Total Revenue</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Optimal Price Point</h3>
             <p className="text-3xl font-bold text-gray-900">
-              ${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ${optimalPricePoint ? optimalPricePoint.price.toFixed(2) : 'N/A'}
             </p>
+            {optimalPricePoint && (
+              <p className="text-sm text-gray-500">
+                Max revenue: ${optimalPricePoint.totalRevenue.toFixed(2)}
+              </p>
+            )}
           </div>
           
-          {optimalPricePoint && (
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Optimal Price Point</h3>
-              <p className="text-3xl font-bold text-gray-900">
-                ${optimalPricePoint.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-              <p className="text-sm text-gray-500">Highest revenue performance</p>
-            </div>
-          )}
-        </div>
-        
-        {/* Price-Revenue Relationship Graph */}
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Price-Revenue Relationship</h3>
-            <div className="flex space-x-2">
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-500 mb-1">View Mode</h3>
+            <div className="flex w-full mt-2 bg-gray-200 rounded-md p-1">
               <button
                 onClick={() => handleToggleView(false)}
-                className={`px-3 py-1 text-xs rounded ${!showUnit 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                type="button"
+                className={`flex-1 py-1 text-xs font-medium rounded-md transition ${
+                  !showUnit ? 'bg-white shadow text-gray-800' : 'text-gray-600 hover:text-gray-800'
+                }`}
               >
                 Total Revenue
               </button>
               <button
                 onClick={() => handleToggleView(true)}
-                className={`px-3 py-1 text-xs rounded ${showUnit 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                type="button"
+                className={`flex-1 py-1 text-xs font-medium rounded-md transition ${
+                  showUnit ? 'bg-white shadow text-gray-800' : 'text-gray-600 hover:text-gray-800'
+                }`}
               >
-                Per Unit Revenue
+                Per Unit
               </button>
             </div>
           </div>
-          
-          {pricePoints.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Main Price-Revenue Chart */}
-              <div className="relative h-80 mt-4">
-                {/* Y-axis label */}
-                <div className="absolute -left-10 h-full flex items-center">
-                  <div className="transform -rotate-90 text-xs text-gray-500">
-                    {showUnit ? 'Revenue Per Unit ($)' : 'Total Revenue ($)'}
-                  </div>
-                </div>
-                
-                {/* Chart container */}
-                <div className="flex h-full items-end mb-8 pl-2">
-                  {pricePoints.map((point, index) => {
-                    // Calculate height for the current data point based on view mode
-                    const displayValue = showUnit ? point.revenuePerUnit : point.totalRevenue;
-                    
-                    // Calculate percentage of max height (prevent division by zero)
-                    const percentage = maxValue > 0 ? (displayValue / maxValue) : 0;
-                    
-                    // Minimum height of 4px, scale based on maximum value
-                    const heightPx = Math.max(4, percentage * 300);
-                    
-                    // Highlight optimal price point
-                    const isOptimal = optimalPricePoint && point.price === optimalPricePoint.price;
-                    
-                    return (
-                      <div key={index} className="flex-1 flex flex-col items-center px-0.5">
-                        <div className="relative w-full group">
-                          <div 
-                            className={`w-full rounded-t ${isOptimal 
-                              ? 'bg-green-500 hover:bg-green-600' 
-                              : 'bg-blue-500 hover:bg-blue-600'} transition-colors`}
-                            style={{ 
-                              height: `${heightPx}px`,
-                              minHeight: '4px'
-                            }}
-                          ></div>
-                          
-                          {/* Tooltip */}
-                          <div className="hidden group-hover:block absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
-                            <div className="font-semibold">Price: ${point.price.toFixed(2)}</div>
-                            <div>Total Revenue: ${point.totalRevenue.toFixed(2)}</div>
-                            <div>Units Sold: {point.totalUnits}</div>
-                            <div>Orders: {point.occurrences}</div>
-                            <div>Revenue Per Unit: ${point.revenuePerUnit.toFixed(2)}</div>
-                            {isOptimal && <div className="text-green-400 font-semibold">Optimal Price Point</div>}
-                          </div>
-                        </div>
-                        
-                        {/* Price label */}
-                        <div className={`text-xs text-gray-500 mt-2 w-full text-center overflow-hidden text-ellipsis whitespace-nowrap ${index % 2 !== 0 ? 'hidden sm:block' : ''}`}>
-                          ${point.price.toFixed(2)}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                
-                {/* Chart info */}
-                <div className="text-xs text-gray-500 text-center mt-1">
-                  <div>X-axis: Price Points ($)</div>
-                  <div className="mt-1">Y-axis: {showUnit ? 'Revenue Per Unit ($)' : 'Total Revenue ($)'}</div>
-                </div>
-              </div>
-              
-              {/* Units Sold by Price Chart */}
-              <div className="relative h-80 mt-4">
-                {/* Y-axis label */}
-                <div className="absolute -left-10 h-full flex items-center">
-                  <div className="transform -rotate-90 text-xs text-gray-500">Units Sold</div>
-                </div>
-                
-                {/* Chart container */}
-                <div className="flex h-full items-end mb-8 pl-2">
-                  {pricePoints.map((point, index) => {
-                    // Calculate height
-                    const heightPx = maxUnits > 0 ? Math.max(4, (point.totalUnits / maxUnits) * 300) : 4;
-                    
-                    // Highlight optimal price point
-                    const isOptimal = optimalPricePoint && point.price === optimalPricePoint.price;
-                    
-                    return (
-                      <div key={index} className="flex-1 flex flex-col items-center px-0.5">
-                        <div className="relative w-full group">
-                          <div 
-                            className={`w-full rounded-t ${isOptimal 
-                              ? 'bg-green-500 hover:bg-green-600' 
-                              : 'bg-purple-500 hover:bg-purple-600'} transition-colors`}
-                            style={{ 
-                              height: `${heightPx}px`,
-                              minHeight: '4px'
-                            }}
-                          ></div>
-                          
-                          {/* Tooltip */}
-                          <div className="hidden group-hover:block absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
-                            <div className="font-semibold">Price: ${point.price.toFixed(2)}</div>
-                            <div>Units Sold: {point.totalUnits}</div>
-                            <div>Orders: {point.occurrences}</div>
-                            <div>Avg Units Per Order: {point.averageUnitsPerOrder.toFixed(1)}</div>
-                            {isOptimal && <div className="text-green-400 font-semibold">Optimal Price Point</div>}
-                          </div>
-                        </div>
-                        
-                        {/* Price label */}
-                        <div className={`text-xs text-gray-500 mt-2 w-full text-center overflow-hidden text-ellipsis whitespace-nowrap ${index % 2 !== 0 ? 'hidden sm:block' : ''}`}>
-                          ${point.price.toFixed(2)}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                
-                {/* Chart info */}
-                <div className="text-xs text-gray-500 text-center mt-1">
-                  <div>X-axis: Price Points ($)</div>
-                  <div className="mt-1">Y-axis: Units Sold</div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex justify-center items-center p-12 bg-gray-50 rounded-lg">
-              <p className="text-gray-500">
-                {selectedProduct ? "No price data available for the selected criteria" : "No price data available"}
-              </p>
-            </div>
-          )}
         </div>
+        
+        {pricePoints.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Revenue Chart */}
+            <div className="relative h-80 mt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-4">
+                {showUnit ? 'Revenue Per Unit by Price Point' : 'Total Revenue by Price Point'}
+              </h3>
+              <ResponsiveContainer width="100%" height="90%">
+                <BarChart
+                  data={pricePoints}
+                  margin={{
+                    top: 5,
+                    right: 20,
+                    left: 20,
+                    bottom: 20,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="price" 
+                    tickFormatter={formatPrice}
+                    label={{ value: 'Price Points ($)', position: 'insideBottom', offset: -10 }}
+                  />
+                  <YAxis 
+                    label={{ 
+                      value: showUnit ? 'Revenue Per Unit ($)' : 'Total Revenue ($)', 
+                      angle: -90, 
+                      position: 'insideLeft' 
+                    }}
+                    tickFormatter={(value) => `$${value}`}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Bar 
+                    dataKey={showUnit ? "revenuePerUnit" : "totalRevenue"} 
+                    name={showUnit ? "Revenue Per Unit" : "Total Revenue"}
+                    fill="#3B82F6"
+                  >
+                    {pricePoints.map((entry, index) => {
+                      const isOptimal = optimalPricePoint && entry.price === optimalPricePoint.price;
+                      return <Cell key={`cell-${index}`} fill={isOptimal ? "#10B981" : "#3B82F6"} />;
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            
+            {/* Units Sold Chart */}
+            <div className="relative h-80 mt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-4">
+                Units Sold by Price Point
+              </h3>
+              <ResponsiveContainer width="100%" height="90%">
+                <BarChart
+                  data={pricePoints}
+                  margin={{
+                    top: 5,
+                    right: 20,
+                    left: 20,
+                    bottom: 20,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="price" 
+                    tickFormatter={formatPrice}
+                    label={{ value: 'Price Points ($)', position: 'insideBottom', offset: -10 }}
+                  />
+                  <YAxis 
+                    label={{ value: 'Units Sold', angle: -90, position: 'insideLeft' }}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Bar 
+                    dataKey="totalUnits" 
+                    name="Units Sold" 
+                    fill="#A855F7"
+                  >
+                    {pricePoints.map((entry, index) => {
+                      const isOptimal = optimalPricePoint && entry.price === optimalPricePoint.price;
+                      return <Cell key={`cell-${index}`} fill={isOptimal ? "#10B981" : "#A855F7"} />;
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-center items-center p-12 bg-gray-50 rounded-lg">
+            <p className="text-gray-500">
+              {selectedProduct ? "No price data available for the selected criteria" : "No price data available"}
+            </p>
+          </div>
+        )}
         
         {/* Price Point Insights */}
         {pricePoints.length > 0 && (

@@ -1,12 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
-  selectProduct, 
-  selectVariant, 
-  selectAllProducts, 
-  selectProductVariants, 
+import {
+  selectProduct,
+  selectVariant,
+  selectAllProducts,
+  selectProductVariants,
   selectSalesData
 } from '@/store/slices/salesSlice';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 
 const SalesAnalytics = () => {
   const dispatch = useDispatch();
@@ -15,7 +25,7 @@ const SalesAnalytics = () => {
   const salesData = useSelector(selectSalesData);
   const selectedProduct = useSelector(state => state.sales.selectedProduct);
   const selectedVariant = useSelector(state => state.sales.selectedVariant);
-  
+
   // Debug logs
   console.log('Selected Product:', selectedProduct);
   console.log('Selected Variant:', selectedVariant);
@@ -23,22 +33,22 @@ const SalesAnalytics = () => {
 
   const totalUnitsSold = salesData.reduce((total, order) => total + order.quantity, 0);
   const totalRevenue = salesData.reduce((total, order) => total + (order.price * order.quantity), 0);
-  
+
   // Group sales data by month for the chart
   const salesByMonth = salesData.reduce((acc, order) => {
     if (!order.date) {
       console.log('Order missing date:', order);
       return acc;
     }
-    
+
     const date = new Date(order.date);
     if (isNaN(date.getTime())) {
       console.log('Invalid date format:', order.date, order);
       return acc;
     }
-    
+
     const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
-    
+
     if (!acc[monthYear]) {
       acc[monthYear] = {
         revenue: 0,
@@ -49,11 +59,11 @@ const SalesAnalytics = () => {
         orders: 0
       };
     }
-    
+
     acc[monthYear].revenue += order.price * order.quantity;
     acc[monthYear].units += order.quantity;
     acc[monthYear].orders += 1;
-    
+
     return acc;
   }, {});
 
@@ -63,7 +73,7 @@ const SalesAnalytics = () => {
   });
 
   console.log('Sales By Month:', salesByMonth);
-  
+
   // Properly sort by date chronologically
   const sortedSalesByMonth = Object.entries(salesByMonth)
     .map(([monthYear, data]) => ({
@@ -75,27 +85,27 @@ const SalesAnalytics = () => {
       orders: data.orders
     }))
     .sort((a, b) => a.timestamp - b.timestamp);
-    
+
   console.log('Sorted Sales By Month:', sortedSalesByMonth);
 
   // Calculate period over period growth
   const calculateGrowth = () => {
     if (sortedSalesByMonth.length < 2) return { revenue: 0, units: 0 };
-    
+
     const currentPeriod = sortedSalesByMonth[sortedSalesByMonth.length - 1];
     const previousPeriod = sortedSalesByMonth[sortedSalesByMonth.length - 2];
-    
-    const revenueGrowth = previousPeriod.revenue !== 0 
-      ? ((currentPeriod.revenue - previousPeriod.revenue) / previousPeriod.revenue) * 100 
+
+    const revenueGrowth = previousPeriod.revenue !== 0
+      ? ((currentPeriod.revenue - previousPeriod.revenue) / previousPeriod.revenue) * 100
       : 100;
-      
-    const unitsGrowth = previousPeriod.units !== 0 
-      ? ((currentPeriod.units - previousPeriod.units) / previousPeriod.units) * 100 
+
+    const unitsGrowth = previousPeriod.units !== 0
+      ? ((currentPeriod.units - previousPeriod.units) / previousPeriod.units) * 100
       : 100;
-      
+
     return { revenue: revenueGrowth, units: unitsGrowth };
   };
-  
+
   const growth = calculateGrowth();
 
   const handleProductChange = (e) => {
@@ -119,15 +129,32 @@ const SalesAnalytics = () => {
     dispatch(selectVariant(selectedVariant));
   };
 
-  const maxRevenue = sortedSalesByMonth.length > 0 
+  const maxRevenue = sortedSalesByMonth.length > 0
     ? Math.max(...sortedSalesByMonth.map(d => d.revenue))
     : 0;
+
+  // Custom tooltip for the LineChart
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-gray-800 text-white text-xs rounded py-2 px-3">
+          <p className="font-semibold">{data.month}</p>
+          <p>Revenue: ${data.revenue.toFixed(2)}</p>
+          <p>Units: {data.units}</p>
+          <p>Orders: {data.orders}</p>
+          <p>Avg Price: ${data.avgPrice.toFixed(2)}</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="space-y-6">
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">Sales Analytics</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div>
             <label htmlFor="product" className="block text-sm font-medium text-gray-700 mb-1">
@@ -147,7 +174,7 @@ const SalesAnalytics = () => {
               ))}
             </select>
           </div>
-          
+
           {selectedProduct && (
             <div>
               <label htmlFor="variant" className="block text-sm font-medium text-gray-700 mb-1">
@@ -169,7 +196,7 @@ const SalesAnalytics = () => {
             </div>
           )}
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <h3 className="text-sm font-medium text-gray-500 mb-1">Total Units Sold</h3>
@@ -180,7 +207,7 @@ const SalesAnalytics = () => {
               </p>
             )}
           </div>
-          
+
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <h3 className="text-sm font-medium text-gray-500 mb-1">Total Revenue</h3>
             <p className="text-3xl font-bold text-gray-900">
@@ -196,79 +223,57 @@ const SalesAnalytics = () => {
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <h3 className="text-sm font-medium text-gray-500 mb-1">Average Price</h3>
             <p className="text-3xl font-bold text-gray-900">
-              ${totalUnitsSold > 0 
-                ? (totalRevenue / totalUnitsSold).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
-                : '0.00'
-              }
+              ${totalUnitsSold > 0
+                ? (totalRevenue / totalUnitsSold).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                : '0.00'}
             </p>
           </div>
 
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Product</h3>
-            <p className="text-lg font-semibold text-gray-900 truncate">
-              {selectedProduct 
-                ? (selectedVariant 
-                    ? `${selectedVariant.variant_name}`
-                    : `${selectedProduct.product_name} (all variants)`) 
-                : 'All Products'}
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Total Orders</h3>
+            <p className="text-3xl font-bold text-gray-900">
+              {salesData.length.toLocaleString()}
             </p>
           </div>
         </div>
-        
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Sales Trends</h3>
-          
+
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <h3 className="text-sm font-medium text-gray-700 mb-4">Sales Over Time</h3>
+
           {sortedSalesByMonth.length > 0 ? (
-            <div className="relative h-80 mt-10">
-              {/* Y-axis label */}
-              <div className="absolute -left-10 h-full flex items-center">
-                <div className="transform -rotate-90 text-xs text-gray-500">Revenue ($)</div>
-              </div>
-              
-              {/* Chart container */}
-              <div className="flex h-full items-end mb-8 pl-2">
-                {sortedSalesByMonth.map((data, index) => {
-                  // Force minimum height to be 4px so all bars are visible
-                  const heightPx = Math.max(4, (data.revenue / maxRevenue) * 300); 
-                  
-                  return (
-                    <div key={index} className="flex-1 flex flex-col items-center px-0.5">
-                      <div className="relative w-full group">
-                        <div 
-                          className="w-full bg-blue-500 hover:bg-blue-600 transition-colors rounded-t"
-                          style={{ 
-                            height: `${heightPx}px`, // Use explicit pixels for height
-                            minHeight: '4px' // Ensure minimum height
-                          }}
-                        ></div>
-                        {/* Tooltip */}
-                        <div className="hidden group-hover:block absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
-                          <div className="font-semibold">{data.month}</div>
-                          <div>Revenue: ${data.revenue.toFixed(2)}</div>
-                          <div>Units: {data.units}</div>
-                          <div>Orders: {data.orders}</div>
-                          <div>Avg Price: ${data.avgPrice.toFixed(2)}</div>
-                        </div>
-                      </div>
-                      {/* Month label */}
-                      <div className={`text-xs text-gray-500 mt-2 w-full text-center overflow-hidden text-ellipsis whitespace-nowrap ${index % 2 !== 0 ? 'hidden sm:block' : ''}`}>
-                        {data.month}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              {/* X-axis label */}
-              <div className="text-xs text-gray-500 text-center mt-4">Month/Year</div>
-              
-              {/* Legend */}
-              <div className="flex justify-end mt-2">
-                <div className="flex items-center text-xs text-gray-500">
-                  <div className="w-3 h-3 bg-blue-500 rounded mr-1"></div>
-                  <span>Revenue</span>
-                </div>
-              </div>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={sortedSalesByMonth}
+                  margin={{
+                    top: 5,
+                    right: 20,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="month" 
+                    label={{ value: 'Month/Year', position: 'insideBottom', offset: -5 }} 
+                  />
+                  <YAxis 
+                    label={{ value: 'Revenue ($)', angle: -90, position: 'insideLeft' }}
+                    tickFormatter={(value) => `$${value}`}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    name="Revenue"
+                    stroke="#3B82F6"
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           ) : (
             <div className="flex justify-center items-center p-12 bg-gray-50 rounded-lg">

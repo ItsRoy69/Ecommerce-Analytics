@@ -45,6 +45,21 @@ npm run dev
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
+## Assumptions Made
+
+- **Data Structure**: The dashboard assumes a standard e-commerce data model with products, variants, and orders
+- **User Roles**: All users have the same level of access to analytics data
+- **Data Volume**: The application is optimized for small to medium-sized e-commerce stores
+- **Browser Support**: Modern browsers with JavaScript enabled are required
+
+## Design Decisions and Trade-offs
+
+- **Shop-based Authentication**: Simple authentication system using shop names was chosen for ease of implementation and demo purposes, trading off security for simplicity
+- **Client-side Filtering**: Data filtering is performed client-side to reduce server load and provide immediate feedback, with the trade-off of requiring more client resources
+- **SQLite Database**: Chosen for simplicity and ease of setup, though may not scale well for very large datasets
+- **Static Generation**: Pages are statically generated where possible to improve loading performance
+- **Responsive UI**: Mobile-first design approach, ensuring usability across devices at the cost of some desktop-specific optimizations
+
 ## API Endpoints
 
 ### Authentication

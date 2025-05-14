@@ -27,33 +27,23 @@ const PriceAnalytics = () => {
   const selectedProduct = useSelector(state => state.sales.selectedProduct);
   const selectedVariant = useSelector(state => state.sales.selectedVariant);
   const selectedTimeFrame = useSelector(state => state.price.selectedTimeFrame);
-  const [showUnit, setShowUnit] = useState(false); // Toggle between total revenue and per unit
+  const [showUnit, setShowUnit] = useState(false);
 
-  // Debug logs to help identify issues
-  useEffect(() => {
-    console.log('View mode changed:', showUnit ? 'Per Unit' : 'Total Revenue');
-  }, [showUnit]);
-
-  // Calculate metrics
   const totalUnitsSold = priceData.reduce((total, order) => total + order.quantity, 0);
   const totalRevenue = priceData.reduce((total, order) => total + (order.price * order.quantity), 0);
   
-  // Calculate average price
   const averagePrice = totalUnitsSold > 0 
     ? totalRevenue / totalUnitsSold 
     : 0;
 
-  // Find min and max prices
   const prices = priceData.map(order => order.price);
   const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
   const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
 
-  // Group data by price points
   const priceAnalysis = {};
   
   priceData.forEach(order => {
-    const price = Math.round(order.price * 100) / 100; // Round to 2 decimal places
-    
+    const price = Math.round(order.price * 100) / 100;
     if (!priceAnalysis[price]) {
       priceAnalysis[price] = {
         price,
@@ -70,16 +60,13 @@ const PriceAnalytics = () => {
     priceAnalysis[price].totalRevenue += (order.price * order.quantity);
   });
   
-  // Calculate derived metrics
   Object.values(priceAnalysis).forEach(point => {
     point.averageUnitsPerOrder = point.occurrences > 0 ? point.totalUnits / point.occurrences : 0;
     point.revenuePerUnit = point.totalUnits > 0 ? point.totalRevenue / point.totalUnits : 0;
   });
   
-  // Sort by price for display
   const pricePoints = Object.values(priceAnalysis).sort((a, b) => a.price - b.price);
   
-  // Calculate optimal price point (highest revenue per order)
   const optimalPricePoint = pricePoints.length > 0 
     ? pricePoints.reduce((optimal, current) => 
         current.totalRevenue > optimal.totalRevenue ? current : optimal, 
@@ -93,7 +80,6 @@ const PriceAnalytics = () => {
       return;
     }
     const selectedProduct = products.find(p => p.product_id === productId);
-    console.log('Selected product from dropdown:', selectedProduct);
     dispatch(selectProduct(selectedProduct));
   };
 
@@ -111,13 +97,10 @@ const PriceAnalytics = () => {
     dispatch(setTimeFrame(e.target.value));
   };
 
-  // Toggle between total revenue and per unit revenue
   const handleToggleView = (showUnitView) => {
-    console.log('Toggling view to:', showUnitView ? 'Per Unit' : 'Total Revenue');
     setShowUnit(showUnitView);
   };
 
-  // Custom tooltip for both charts
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -137,22 +120,19 @@ const PriceAnalytics = () => {
     return null;
   };
 
-  // Format X axis ticks to show dollar amounts
   const formatPrice = (price) => `$${price.toFixed(2)}`;
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Price Analytics</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+        <div className="grid grid-cols-1 gap-4 mb-4 sm:mb-6">
           <div>
             <label htmlFor="product" className="block text-sm font-medium text-gray-700 mb-1">
               Select Product
             </label>
             <select
               id="product"
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full px-3 py-2 border border-gray-300 text-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
               onChange={handleProductChange}
               value={selectedProduct?.product_id || ''}
             >
@@ -172,7 +152,7 @@ const PriceAnalytics = () => {
               </label>
               <select
                 id="variant"
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full px-3 py-2 border border-gray-300 text-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                 onChange={handleVariantChange}
                 value={selectedVariant?.variant_id || ''}
               >
@@ -192,7 +172,7 @@ const PriceAnalytics = () => {
             </label>
             <select
               id="timeframe"
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full px-3 py-2 border border-gray-300 text-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
               onChange={handleTimeFrameChange}
               value={selectedTimeFrame}
             >
@@ -204,36 +184,36 @@ const PriceAnalytics = () => {
           </div>
         </div>
       
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Average Price</h3>
-            <p className="text-3xl font-bold text-gray-900">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-gray-50 p-2 sm:p-4 rounded-lg border border-gray-200">
+            <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Average Price</h3>
+            <p className="text-base sm:text-3xl font-bold text-gray-900">
               ${averagePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
           
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Price Range</h3>
-            <p className="text-xl font-bold text-gray-900">
+          <div className="bg-gray-50 p-2 sm:p-4 rounded-lg border border-gray-200">
+            <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Price Range</h3>
+            <p className="text-base sm:text-xl font-bold text-gray-900">
               ${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} - 
               ${maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
           
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Optimal Price Point</h3>
-            <p className="text-3xl font-bold text-gray-900">
+          <div className="bg-gray-50 p-2 sm:p-4 rounded-lg border border-gray-200">
+            <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Optimal Price Point</h3>
+            <p className="text-base sm:text-3xl font-bold text-gray-900">
               ${optimalPricePoint ? optimalPricePoint.price.toFixed(2) : 'N/A'}
             </p>
             {optimalPricePoint && (
-              <p className="text-sm text-gray-500">
+              <p className="text-xs sm:text-sm text-gray-500">
                 Max revenue: ${optimalPricePoint.totalRevenue.toFixed(2)}
               </p>
             )}
           </div>
           
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">View Mode</h3>
+          <div className="bg-gray-50 p-2 sm:p-4 rounded-lg border border-gray-200">
+            <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-1">View Mode</h3>
             <div className="flex w-full mt-2 bg-gray-200 rounded-md p-1">
               <button
                 onClick={() => handleToggleView(false)}
@@ -256,10 +236,10 @@ const PriceAnalytics = () => {
         </div>
         
         {pricePoints.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* Revenue Chart */}
-            <div className="relative h-80 mt-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-4">
+            <div className="relative h-60 sm:h-80 mt-2 sm:mt-4">
+              <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-4">
                 {showUnit ? 'Revenue Per Unit by Price Point' : 'Total Revenue by Price Point'}
               </h3>
               <ResponsiveContainer width="100%" height="90%">
@@ -267,8 +247,8 @@ const PriceAnalytics = () => {
                   data={pricePoints}
                   margin={{
                     top: 5,
-                    right: 20,
-                    left: 20,
+                    right: 5,
+                    left: 5,
                     bottom: 20,
                   }}
                 >
@@ -277,6 +257,7 @@ const PriceAnalytics = () => {
                     dataKey="price" 
                     tickFormatter={formatPrice}
                     label={{ value: 'Price Points ($)', position: 'insideBottom', offset: -10 }}
+                    tick={{fontSize: 10}}
                   />
                   <YAxis 
                     label={{ 
@@ -285,9 +266,10 @@ const PriceAnalytics = () => {
                       position: 'insideLeft' 
                     }}
                     tickFormatter={(value) => `$${value}`}
+                    tick={{fontSize: 10}}
                   />
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend />
+                  <Legend wrapperStyle={{fontSize: '10px'}} />
                   <Bar 
                     dataKey={showUnit ? "revenuePerUnit" : "totalRevenue"} 
                     name={showUnit ? "Revenue Per Unit" : "Total Revenue"}
@@ -303,8 +285,8 @@ const PriceAnalytics = () => {
             </div>
             
             {/* Units Sold Chart */}
-            <div className="relative h-80 mt-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-4">
+            <div className="relative h-60 sm:h-80 mt-2 sm:mt-4">
+              <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-4">
                 Units Sold by Price Point
               </h3>
               <ResponsiveContainer width="100%" height="90%">
@@ -312,8 +294,8 @@ const PriceAnalytics = () => {
                   data={pricePoints}
                   margin={{
                     top: 5,
-                    right: 20,
-                    left: 20,
+                    right: 5,
+                    left: 5,
                     bottom: 20,
                   }}
                 >
@@ -322,12 +304,14 @@ const PriceAnalytics = () => {
                     dataKey="price" 
                     tickFormatter={formatPrice}
                     label={{ value: 'Price Points ($)', position: 'insideBottom', offset: -10 }}
+                    tick={{fontSize: 10}}
                   />
                   <YAxis 
                     label={{ value: 'Units Sold', angle: -90, position: 'insideLeft' }}
+                    tick={{fontSize: 10}}
                   />
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend />
+                  <Legend wrapperStyle={{fontSize: '10px'}} />
                   <Bar 
                     dataKey="totalUnits" 
                     name="Units Sold" 
@@ -343,8 +327,8 @@ const PriceAnalytics = () => {
             </div>
           </div>
         ) : (
-          <div className="flex justify-center items-center p-12 bg-gray-50 rounded-lg">
-            <p className="text-gray-500">
+          <div className="flex justify-center items-center p-6 sm:p-12 bg-gray-50 rounded-lg">
+            <p className="text-gray-500 text-sm">
               {selectedProduct ? "No price data available for the selected criteria" : "No price data available"}
             </p>
           </div>
@@ -352,67 +336,69 @@ const PriceAnalytics = () => {
         
         {/* Price Point Insights */}
         {pricePoints.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Price Point Insights</h3>
+          <div className="mt-6 sm:mt-8">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Price Point Insights</h3>
             
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price Point
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Orders
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Units Sold
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Revenue
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Avg Units Per Order
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Revenue Per Unit
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {pricePoints.map((point, index) => {
-                    const isOptimal = optimalPricePoint && point.price === optimalPricePoint.price;
-                    
-                    return (
-                      <tr key={index} className={isOptimal ? 'bg-green-50' : ''}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          ${point.price.toFixed(2)} {isOptimal && <span className="text-green-500 ml-1">★</span>}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {point.occurrences}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {point.totalUnits}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          ${point.totalRevenue.toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {point.averageUnitsPerOrder.toFixed(1)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          ${point.revenuePerUnit.toFixed(2)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Price Point
+                      </th>
+                      <th scope="col" className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Orders
+                      </th>
+                      <th scope="col" className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Units Sold
+                      </th>
+                      <th scope="col" className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Revenue
+                      </th>
+                      <th scope="col" className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Avg Units/Order
+                      </th>
+                      <th scope="col" className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Revenue/Unit
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {pricePoints.map((point, index) => {
+                      const isOptimal = optimalPricePoint && point.price === optimalPricePoint.price;
+                      
+                      return (
+                        <tr key={index} className={isOptimal ? 'bg-green-50' : ''}>
+                          <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
+                            ${point.price.toFixed(2)} {isOptimal && <span className="text-green-500 ml-1">★</span>}
+                          </td>
+                          <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                            {point.occurrences}
+                          </td>
+                          <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                            {point.totalUnits}
+                          </td>
+                          <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                            ${point.totalRevenue.toFixed(2)}
+                          </td>
+                          <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                            {point.averageUnitsPerOrder.toFixed(1)}
+                          </td>
+                          <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                            ${point.revenuePerUnit.toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
         
-        <div className="mt-8 text-sm text-gray-600">
+        <div className="mt-6 sm:mt-8 text-xs sm:text-sm text-gray-600">
           <h3 className="font-medium text-gray-900 mb-2">Understanding This Analysis</h3>
           <p>This visualization shows the relationship between product price points and revenue. The left chart displays 
           {showUnit ? ' revenue per unit' : ' total revenue'} at each price point, while the right chart shows the number of units sold. 

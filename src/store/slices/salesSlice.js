@@ -69,14 +69,10 @@ const salesSlice = createSlice({
         state.products = action.payload.products || [];
         state.variants = action.payload.variants || [];
         
-        // Ensure orders have proper date formatting
         state.orders = (action.payload.orders || []).map(order => {
-          // Check if date exists and format it if needed
           if (order.date && typeof order.date === 'string') {
-            // Keep the date as is, we'll parse it during display
             return order;
           } else {
-            // If no date or not a string, use current date as fallback
             return {
               ...order,
               date: new Date().toISOString().split('T')[0]
@@ -110,24 +106,20 @@ export const selectSalesData = (state) => {
   }
   
   if (state.sales.selectedVariant) {
-    // Filter orders for selected variant
     return state.sales.orders.filter(order => 
       order.variant_id === state.sales.selectedVariant.variant_id
     );
   } else if (state.sales.selectedProduct) {
-    // Filter orders for all variants of selected product
     const productVariantIds = (state.sales.variants || [])
       .filter(variant => variant.product_id === state.sales.selectedProduct.product_id)
       .map(variant => variant.variant_id);
     
-    // Only return orders that match these variant IDs
     if (productVariantIds.length > 0) {
       return state.sales.orders.filter(order => 
         productVariantIds.includes(order.variant_id)
       );
     }
   } else {
-    // If no product or variant is selected, return all orders
     return state.sales.orders;
   }
   

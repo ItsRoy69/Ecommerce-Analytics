@@ -17,21 +17,17 @@ const priceSlice = createSlice({
 export const { setTimeFrame } = priceSlice.actions;
 
 export const selectPriceData = (state) => {
-  // First check if orders array exists
   if (!state.sales.orders || state.sales.orders.length === 0) {
     return [];
   }
   
-  // Get appropriate sales data based on selection
   let salesData = [];
   
   if (state.sales.selectedVariant) {
-    // Filter orders for selected variant
     salesData = state.sales.orders.filter(order => 
       order.variant_id === state.sales.selectedVariant.variant_id
     );
   } else if (state.sales.selectedProduct) {
-    // Filter orders for all variants of selected product
     const productVariantIds = (state.sales.variants || [])
       .filter(variant => variant.product_id === state.sales.selectedProduct.product_id)
       .map(variant => variant.variant_id);
@@ -42,11 +38,9 @@ export const selectPriceData = (state) => {
       );
     }
   } else {
-    // Return all orders when no product or variant is selected
     salesData = state.sales.orders;
   }
 
-  // Now filter by time frame
   const today = new Date();
   let startDate = new Date();
   
@@ -67,7 +61,6 @@ export const selectPriceData = (state) => {
       startDate.setDate(today.getDate() - 30);
   }
 
-  // Filter by date range
   return salesData.filter(order => {
     if (!order.date) return false;
     try {

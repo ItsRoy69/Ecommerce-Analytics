@@ -370,7 +370,7 @@ const PriceAnalytics = () => {
           ) : (
             <div className="flex justify-center items-center p-12 bg-gray-50 rounded-lg">
               <p className="text-gray-500">
-                {selectedProduct ? "No price data available for the selected criteria" : "Please select a product to see price analysis"}
+                {selectedProduct ? "No price data available for the selected criteria" : "No price data available"}
               </p>
             </div>
           )}

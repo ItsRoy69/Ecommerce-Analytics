@@ -121,6 +121,9 @@ export const selectSalesData = (state) => {
         productVariantIds.includes(order.variant_id)
       );
     }
+  } else {
+    // If no product or variant is selected, return all orders
+    return state.sales.orders;
   }
   
   return [];

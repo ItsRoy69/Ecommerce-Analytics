@@ -210,7 +210,7 @@ const SalesAnalytics = () => {
                 ? (selectedVariant 
                     ? `${selectedVariant.variant_name}`
                     : `${selectedProduct.product_name} (all variants)`) 
-                : 'No product selected'}
+                : 'All Products'}
             </p>
           </div>
         </div>
@@ -273,7 +273,7 @@ const SalesAnalytics = () => {
           ) : (
             <div className="flex justify-center items-center p-12 bg-gray-50 rounded-lg">
               <p className="text-gray-500">
-                {selectedProduct ? "No sales data available for the selected criteria" : "Please select a product to see sales trends"}
+                {selectedProduct ? "No sales data available for the selected criteria" : "No sales data available"}
               </p>
             </div>
           )}

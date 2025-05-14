@@ -42,7 +42,8 @@ export const selectPriceData = (state) => {
       );
     }
   } else {
-    return []; // No selection
+    // Return all orders when no product or variant is selected
+    salesData = state.sales.orders;
   }
 
   // Now filter by time frame

@@ -2,6 +2,8 @@
 
 A comprehensive analytics dashboard for e-commerce stores, built with Next.js and Redux.
 
+[Ecommerce-Analytics.webm](https://github.com/user-attachments/assets/3595fc2f-7da0-4cdd-8f44-46e02585e79b)
+
 ## Features
 
 - **Authentication**: Simple shop name-based authentication

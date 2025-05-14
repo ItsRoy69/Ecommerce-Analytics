@@ -125,6 +125,14 @@ const PriceAnalytics = () => {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+        <div className="mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Price Impact Analysis</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            This visualization demonstrates how different price points affect your revenue. 
+            Select products and variants to analyze their optimal pricing strategy.
+          </p>
+        </div>
+        
         <div className="grid grid-cols-1 gap-4 mb-4 sm:mb-6">
           <div>
             <label htmlFor="product" className="block text-sm font-medium text-gray-700 mb-1">
@@ -238,35 +246,40 @@ const PriceAnalytics = () => {
         {pricePoints.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* Revenue Chart */}
-            <div className="relative h-60 sm:h-80 mt-2 sm:mt-4">
+            <div className="relative h-80 sm:h-100 mt-2 sm:mt-4 overflow-hidden">
               <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-4">
                 {showUnit ? 'Revenue Per Unit by Price Point' : 'Total Revenue by Price Point'}
               </h3>
-              <ResponsiveContainer width="100%" height="90%">
+              <ResponsiveContainer width="99%" height="90%">
                 <BarChart
                   data={pricePoints}
                   margin={{
                     top: 5,
-                    right: 5,
-                    left: 5,
-                    bottom: 20,
+                    right: 10,
+                    left: 10,
+                    bottom: 30,
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="price" 
                     tickFormatter={formatPrice}
-                    label={{ value: 'Price Points ($)', position: 'insideBottom', offset: -10 }}
-                    tick={{fontSize: 10}}
+                    label={{ value: 'Price Points ($)', position: 'insideBottom', offset: -15, dy: 20 }}
+                    tick={{fontSize: 9}}
+                    tickMargin={10}
                   />
                   <YAxis 
                     label={{ 
                       value: showUnit ? 'Revenue Per Unit ($)' : 'Total Revenue ($)', 
                       angle: -90, 
-                      position: 'insideLeft' 
+                      position: 'insideLeft',
+                      offset: 5,
+                      dy: 20
                     }}
                     tickFormatter={(value) => `$${value}`}
-                    tick={{fontSize: 10}}
+                    tick={{fontSize: 9}}
+                    tickMargin={5}
+                    width={60}
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{fontSize: '10px'}} />
@@ -285,30 +298,33 @@ const PriceAnalytics = () => {
             </div>
             
             {/* Units Sold Chart */}
-            <div className="relative h-60 sm:h-80 mt-2 sm:mt-4">
+            <div className="relative h-80 sm:h-100 mt-2 sm:mt-4 overflow-hidden">
               <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-4">
                 Units Sold by Price Point
               </h3>
-              <ResponsiveContainer width="100%" height="90%">
+              <ResponsiveContainer width="99%" height="90%">
                 <BarChart
                   data={pricePoints}
                   margin={{
                     top: 5,
-                    right: 5,
-                    left: 5,
-                    bottom: 20,
+                    right: 10,
+                    left: 10,
+                    bottom: 30,
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="price" 
                     tickFormatter={formatPrice}
-                    label={{ value: 'Price Points ($)', position: 'insideBottom', offset: -10 }}
-                    tick={{fontSize: 10}}
+                    label={{ value: 'Price Points ($)', position: 'insideBottom', offset: -15, dy: 20 }}
+                    tick={{fontSize: 9}}
+                    tickMargin={10}
                   />
                   <YAxis 
-                    label={{ value: 'Units Sold', angle: -90, position: 'insideLeft' }}
-                    tick={{fontSize: 10}}
+                    label={{ value: 'Units Sold', angle: -90, position: 'insideLeft', offset: -5 }}
+                    tick={{fontSize: 9}}
+                    tickMargin={5}
+                    width={40}
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{fontSize: '10px'}} />
@@ -403,6 +419,13 @@ const PriceAnalytics = () => {
           <p>This visualization shows the relationship between product price points and revenue. The left chart displays 
           {showUnit ? ' revenue per unit' : ' total revenue'} at each price point, while the right chart shows the number of units sold. 
           Green bars indicate the price point that generated the highest total revenue.</p>
+          <p className="mt-2">Key insights:</p>
+          <ul className="list-disc pl-5 mt-1">
+            <li>Higher prices may increase per-unit revenue but can reduce overall sales volume</li>
+            <li>Lower prices often increase sales volume but may reduce per-unit profit</li>
+            <li>The optimal price point (highlighted in green) balances these factors for maximum total revenue</li>
+            <li>Use this analysis to experiment with different pricing strategies for your products</li>
+          </ul>
         </div>
       </div>
     </div>
